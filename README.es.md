@@ -58,3 +58,4 @@ pnpm agentworkroom:stop
 ```
 
 Esto levanta el gateway de OpenClaw desde este repositorio y deja a AgentWorkroom como capa de control del stack local.
+Por defecto, el gateway corre dentro de una sesión `tmux` administrada por el repo para sobrevivir cierres de terminal y seguir controlándose con los mismos scripts.

@@ -170,6 +170,8 @@ export default defineConfig([
         "@lancedb/lancedb",
         "@matrix-org/matrix-sdk-crypto-nodejs",
         "matrix-js-sdk",
+        "jimp",
+        "simple-xml-to-json",
         ...bundledPluginRuntimeDependencies,
       ],
     },

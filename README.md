@@ -78,3 +78,4 @@ pnpm agentworkroom:stop
 ```
 
 This starts the OpenClaw gateway from this repository and monitors Ollama, Home Assistant, and n8n from the same entrypoint.
+By default, the gateway runs inside a repo-managed tmux session so it survives terminal disconnects and remains controllable through the same scripts.

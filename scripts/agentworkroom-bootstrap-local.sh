@@ -25,8 +25,16 @@ if [ "$AGENTWORKROOM_BOOTSTRAP_UI_BUILD" = "1" ]; then
 fi
 
 if [ "$AGENTWORKROOM_BOOTSTRAP_BUILD" = "1" ]; then
-  info "Building runtime"
-  pnpm build
+  if has_a2ui_bundle_or_sources; then
+    info "Building runtime"
+    pnpm build
+  else
+    warn "Skipping full runtime build because A2UI sources/bundle are not present in this checkout"
+    info "Building minimal runtime artifacts for gateway startup"
+    node scripts/tsdown-build.mjs --no-clean
+    node scripts/runtime-postbuild.mjs
+    node scripts/build-stamp.mjs
+  fi
 fi
 
 if [ -f "$OPENCLAW_CONFIG_PATH" ]; then

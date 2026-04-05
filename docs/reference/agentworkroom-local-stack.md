@@ -14,7 +14,8 @@ That means AgentWorkroom owns the bootstrap scripts, gateway start/stop flow, an
 - Gateway process lifecycle
 - Control UI build
 - Health checks for Ollama, Home Assistant, and n8n
-- Optional Docker Compose start/stop for Home Assistant and n8n
+- Repo-managed tmux runtime for the gateway
+- Optional Docker Compose or direct container start/stop for Home Assistant and n8n
 
 ## What still lives outside the repo
 
@@ -46,10 +47,11 @@ cp config/local-stack.env.example config/local-stack.env
 
 - OpenClaw home paths
 - gateway port
+- gateway runtime (`tmux` by default)
 - Ollama URL
 - Home Assistant URL
 - n8n URL
-- optional Docker Compose files if AgentWorkroom should manage those services
+- optional Docker Compose files or container names if AgentWorkroom should manage those services
 
 3. Bootstrap the repo:
 
@@ -98,6 +100,26 @@ AGENTWORKROOM_N8N_COMPOSE="/absolute/path/to/n8n/docker-compose.yml"
 ```
 
 Then `agentworkroom:start` and `agentworkroom:stop` will call `docker compose` for those services.
+
+If those services already exist as named containers, you can manage them directly instead:
+
+```bash
+AGENTWORKROOM_MANAGE_HOME_ASSISTANT="1"
+AGENTWORKROOM_HOME_ASSISTANT_CONTAINER="homeassistant"
+AGENTWORKROOM_MANAGE_N8N="1"
+AGENTWORKROOM_N8N_CONTAINER="n8n"
+```
+
+## Gateway runtime
+
+The gateway defaults to `tmux`:
+
+```bash
+AGENTWORKROOM_GATEWAY_RUNTIME="tmux"
+AGENTWORKROOM_TMUX_SESSION="agentworkroom-gateway"
+```
+
+That keeps the gateway alive even if the launching terminal disconnects, while still letting the repo own the start/stop/status flow.
 
 ## Important note
 

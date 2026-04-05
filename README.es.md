@@ -55,7 +55,11 @@ pnpm agentworkroom:bootstrap
 pnpm agentworkroom:start
 pnpm agentworkroom:status
 pnpm agentworkroom:stop
+pnpm agentworkroom:autostart:install
+pnpm agentworkroom:repair-config
 ```
 
 Esto levanta el gateway de OpenClaw desde este repositorio y deja a AgentWorkroom como capa de control del stack local.
 Por defecto, el gateway corre dentro de una sesión `tmux` administrada por el repo para sobrevivir cierres de terminal y seguir controlándose con los mismos scripts.
+También puedes instalar un `LaunchAgent` por usuario en macOS para que, al iniciar sesión, se dispare el flujo estable del repo sin volver al arranque directo frágil del gateway por `launchd`.
+Si el repo vive dentro de `Desktop`, `Documents` o `Downloads`, conviene moverlo antes a una ruta neutral para que el autoarranque headless por `launchd` no choque con las restricciones de macOS.

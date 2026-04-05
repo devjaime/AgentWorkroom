@@ -8,6 +8,11 @@ printf 'Repo: %s\n' "$repo_root"
 printf 'OpenClaw home: %s\n' "$OPENCLAW_HOME"
 printf 'Gateway target: http://%s:%s/\n' "$AGENTWORKROOM_GATEWAY_HOST" "$AGENTWORKROOM_GATEWAY_PORT"
 printf 'Gateway runtime: %s\n' "$AGENTWORKROOM_GATEWAY_RUNTIME"
+if [ -f "$AGENTWORKROOM_LAUNCHD_PLIST" ]; then
+  printf 'Autostart plist: installed (%s)\n' "$AGENTWORKROOM_LAUNCHD_PLIST"
+else
+  printf 'Autostart plist: not installed (%s)\n' "$AGENTWORKROOM_LAUNCHD_PLIST"
+fi
 printf '\n'
 
 if [ "$AGENTWORKROOM_GATEWAY_RUNTIME" = "tmux" ] && command -v tmux >/dev/null 2>&1; then

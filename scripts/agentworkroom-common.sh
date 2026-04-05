@@ -188,3 +188,14 @@ tmux_session_exists() {
   local session_name=$1
   tmux has-session -t "$session_name" >/dev/null 2>&1
 }
+
+repo_root_is_in_protected_user_dir() {
+  case "$repo_root" in
+    "$HOME/Desktop"/*|"$HOME/Documents"/*|"$HOME/Downloads"/*)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}

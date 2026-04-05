@@ -34,6 +34,9 @@ This is intentional. The repo becomes the control plane without forcing fragile 
 - `scripts/agentworkroom-start-local.sh`
 - `scripts/agentworkroom-stop-local.sh`
 - `scripts/agentworkroom-status-local.sh`
+- `scripts/agentworkroom-install-autostart.sh`
+- `scripts/agentworkroom-uninstall-autostart.sh`
+- `scripts/agentworkroom-repair-openclaw-config.sh`
 
 ## Quick start
 
@@ -76,6 +79,35 @@ pnpm agentworkroom:status
 ```bash
 pnpm agentworkroom:stop
 ```
+
+## Autostart at login
+
+If you want the repo to restore the stack automatically when you log in on macOS:
+
+```bash
+pnpm agentworkroom:autostart:install
+```
+
+That installs a simple per-user LaunchAgent that calls the repo-owned start script. The LaunchAgent does not run the gateway directly; it only triggers the stable tmux-based flow that this repo already manages.
+
+Important on macOS: if the repository itself lives inside a protected user folder such as `Desktop`, `Documents`, or `Downloads`, the background LaunchAgent can fail with `Operation not permitted`.
+If you want true headless autostart, keep the repo in a neutral path such as `~/Projects/AgentWorkroom` or an external SSD mount, then reinstall autostart from there.
+
+To remove it later:
+
+```bash
+pnpm agentworkroom:autostart:uninstall
+```
+
+## Repair stale OpenClaw config
+
+If older plugin ids or renamed providers are still generating warnings during startup, run:
+
+```bash
+pnpm agentworkroom:repair-config
+```
+
+This creates a timestamped backup of `~/.openclaw/openclaw.json` first, then removes known stale references that break or pollute the local runtime.
 
 ## Recommended model defaults
 

@@ -75,7 +75,11 @@ pnpm agentworkroom:bootstrap
 pnpm agentworkroom:start
 pnpm agentworkroom:status
 pnpm agentworkroom:stop
+pnpm agentworkroom:autostart:install
+pnpm agentworkroom:repair-config
 ```
 
 This starts the OpenClaw gateway from this repository and monitors Ollama, Home Assistant, and n8n from the same entrypoint.
 By default, the gateway runs inside a repo-managed tmux session so it survives terminal disconnects and remains controllable through the same scripts.
+You can also install a per-user macOS LaunchAgent that simply calls the repo-owned start flow at login, without going back to the fragile direct launchd gateway runtime.
+If the repo lives under `Desktop`, `Documents`, or `Downloads`, move it to a neutral path first for reliable headless launchd startup.

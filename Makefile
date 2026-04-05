@@ -3,7 +3,7 @@
 build:
 	pnpm build
 
-.PHONY: agentworkroom-bootstrap agentworkroom-start agentworkroom-stop agentworkroom-status
+.PHONY: agentworkroom-bootstrap agentworkroom-start agentworkroom-stop agentworkroom-status agentworkroom-autostart-install agentworkroom-autostart-uninstall agentworkroom-repair-config
 
 agentworkroom-bootstrap:
 	bash scripts/agentworkroom-bootstrap-local.sh
@@ -16,3 +16,12 @@ agentworkroom-stop:
 
 agentworkroom-status:
 	bash scripts/agentworkroom-status-local.sh
+
+agentworkroom-autostart-install:
+	bash scripts/agentworkroom-install-autostart.sh
+
+agentworkroom-autostart-uninstall:
+	bash scripts/agentworkroom-uninstall-autostart.sh
+
+agentworkroom-repair-config:
+	bash scripts/agentworkroom-repair-openclaw-config.sh

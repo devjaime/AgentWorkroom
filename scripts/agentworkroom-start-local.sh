@@ -17,6 +17,12 @@ node scripts/runtime-postbuild.mjs
 node scripts/build-stamp.mjs
 
 if port_is_listening "$AGENTWORKROOM_GATEWAY_PORT" && ! tmux_session_exists "$AGENTWORKROOM_TMUX_SESSION"; then
+  gateway_http_code=$(http_status_code "http://${AGENTWORKROOM_GATEWAY_HOST}:${AGENTWORKROOM_GATEWAY_PORT}/")
+  if [ "$gateway_http_code" != "000" ]; then
+    info "Gateway is already reachable on port $AGENTWORKROOM_GATEWAY_PORT (status=$gateway_http_code); leaving existing process in place"
+    port_listener_info "$AGENTWORKROOM_GATEWAY_PORT" || true
+    exit 0
+  fi
   warn "Port $AGENTWORKROOM_GATEWAY_PORT is already in use by another process"
   port_listener_info "$AGENTWORKROOM_GATEWAY_PORT" || true
   fail "Free the port or update AGENTWORKROOM_GATEWAY_PORT in config/local-stack.env"

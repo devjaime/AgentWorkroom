@@ -3,9 +3,6 @@ set -euo pipefail
 # shellcheck source=scripts/agentworkroom-common.sh
 source "$(cd -- "$(dirname -- "$0")" && pwd)/agentworkroom-common.sh"
 
-launchctl bootout "$(launchctl_domain)" "$AGENTWORKROOM_LAUNCHD_PLIST" >/dev/null 2>&1 || true
-launchctl disable "$(launchctl_service_target)" >/dev/null 2>&1 || true
-
 if command -v tmux >/dev/null 2>&1 && tmux_session_exists "$AGENTWORKROOM_TMUX_SESSION"; then
   info "Stopping tmux session $AGENTWORKROOM_TMUX_SESSION"
   tmux kill-session -t "$AGENTWORKROOM_TMUX_SESSION" >/dev/null 2>&1 || true

@@ -35,6 +35,7 @@ This repository starts from a clean upstream OpenClaw baseline and becomes the h
 ## Start here
 
 - English migration guide: `docs/reference/agentworkroom-migration.md`
+- Local stack guide: `docs/reference/agentworkroom-local-stack.md`
 - Spanish overview: `README.es.md`
 - Architecture prompt and templates:
   - `docs/reference/templates/personal-ai-os/AGENTS.md`
@@ -63,3 +64,17 @@ The migration strategy is:
 
 AgentWorkroom is based on the excellent [OpenClaw](https://github.com/openclaw/openclaw) project.
 This repository keeps that foundation while exploring a more personalized AI operations product.
+
+
+## Local stack commands
+
+Run AgentWorkroom as the control point for your local environment:
+
+```bash
+pnpm agentworkroom:bootstrap
+pnpm agentworkroom:start
+pnpm agentworkroom:status
+pnpm agentworkroom:stop
+```
+
+This starts the OpenClaw gateway from this repository and monitors Ollama, Home Assistant, and n8n from the same entrypoint.

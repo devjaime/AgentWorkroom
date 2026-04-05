@@ -1204,7 +1204,11 @@
     "tui:dev": "OPENCLAW_PROFILE=dev node scripts/run-node.mjs --dev tui",
     "ui:build": "node scripts/ui.js build",
     "ui:dev": "node scripts/ui.js dev",
-    "ui:install": "node scripts/ui.js install"
+    "ui:install": "node scripts/ui.js install",
+    "agentworkroom:bootstrap": "bash scripts/agentworkroom-bootstrap-local.sh",
+    "agentworkroom:start": "bash scripts/agentworkroom-start-local.sh",
+    "agentworkroom:stop": "bash scripts/agentworkroom-stop-local.sh",
+    "agentworkroom:status": "bash scripts/agentworkroom-status-local.sh"
   },
   "dependencies": {
     "@agentclientprotocol/sdk": "0.18.0",

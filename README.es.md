@@ -25,6 +25,7 @@ La idea es convertir el gateway original en una sala de trabajo permanente para 
 ## Documentos clave
 
 - Guía de migración: `docs/reference/agentworkroom-migration.md`
+- Guía del stack local: `docs/reference/agentworkroom-local-stack.md`
 - Plantilla arquitectónica principal: `docs/reference/templates/personal-ai-os/AGENTS.md`
 - Prompt inicial de arquitectura: `docs/reference/templates/personal-ai-os/INITIAL_ARCHITECT_PROMPT.es.md`
 - Plan de Fase 1: `docs/reference/templates/personal-ai-os/PHASE_1_EXECUTION_PLAN.es.md`
@@ -43,3 +44,17 @@ La idea es convertir el gateway original en una sala de trabajo permanente para 
 3. terminar la Fase 1 del Tool Runtime
 4. expandir canales, empezando por WhatsApp junto con Telegram
 5. continuar con watchdogs, política local/cloud y hardening operativo
+
+
+## Comandos del stack local
+
+Para usar AgentWorkroom como punto de entrada del entorno local:
+
+```bash
+pnpm agentworkroom:bootstrap
+pnpm agentworkroom:start
+pnpm agentworkroom:status
+pnpm agentworkroom:stop
+```
+
+Esto levanta el gateway de OpenClaw desde este repositorio y deja a AgentWorkroom como capa de control del stack local.

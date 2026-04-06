@@ -144,6 +144,22 @@ function warnEscapedSkillPath(params: {
   });
 }
 
+function shouldSuppressEscapedSkillWarning(params: {
+  source: string;
+  rootDir: string;
+  candidateRealPath: string;
+}): boolean {
+  const resolvedRootDir = path.resolve(params.rootDir);
+  const isManagedAliasesRoot =
+    resolvedRootDir === path.resolve(CONFIG_DIR, "skills") ||
+    resolvedRootDir.endsWith(`${path.sep}.openclaw${path.sep}skills`);
+  if (params.source !== "openclaw-managed" && !isManagedAliasesRoot) {
+    return false;
+  }
+  const personalAgentsSkillsDir = path.resolve(os.homedir(), ".agents", "skills");
+  return isPathInside(personalAgentsSkillsDir, params.candidateRealPath);
+}
+
 function resolveContainedSkillPath(params: {
   source: string;
   rootDir: string;
@@ -156,6 +172,18 @@ function resolveContainedSkillPath(params: {
   }
   if (isPathInside(params.rootRealPath, candidateRealPath)) {
     return candidateRealPath;
+  }
+  // `~/.openclaw/skills` may contain convenience symlinks into `~/.agents/skills`.
+  // Those skills are already loaded via the personal-agents source, so silently
+  // ignore the managed alias instead of logging a warning on every startup.
+  if (
+    shouldSuppressEscapedSkillWarning({
+      source: params.source,
+      rootDir: params.rootDir,
+      candidateRealPath,
+    })
+  ) {
+    return null;
   }
   warnEscapedSkillPath({
     source: params.source,

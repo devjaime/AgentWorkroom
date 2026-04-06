@@ -251,6 +251,50 @@ function isExpectedSafePathError(error: unknown): boolean {
   return code === "ENOENT" || code === "ENOTDIR" || code === "ELOOP";
 }
 
+function isExpectedControlUiReadError(error: unknown): boolean {
+  const code =
+    typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
+  return (
+    code === "ENOENT" ||
+    code === "ENOTDIR" ||
+    code === "ELOOP" ||
+    code === "ETIMEDOUT" ||
+    code === "EIO" ||
+    code === "ESTALE"
+  );
+}
+
+function readControlUiFileOrRespond(
+  req: IncomingMessage,
+  res: ServerResponse,
+  safeFile: { path: string; fd: number },
+  opts: { isIndexHtml: boolean },
+): boolean {
+  try {
+    if (respondHeadForFile(req, res, safeFile.path)) {
+      return true;
+    }
+    if (opts.isIndexHtml) {
+      serveResolvedIndexHtml(res, fs.readFileSync(safeFile.fd, "utf8"));
+      return true;
+    }
+    serveResolvedFile(res, safeFile.path, fs.readFileSync(safeFile.fd));
+    return true;
+  } catch (error) {
+    if (!isExpectedControlUiReadError(error)) {
+      throw error;
+    }
+    if (opts.isIndexHtml) {
+      respondControlUiAssetsUnavailable(res);
+      return true;
+    }
+    respondControlUiNotFound(res);
+    return true;
+  } finally {
+    fs.closeSync(safeFile.fd);
+  }
+}
+
 function resolveSafeAvatarFile(filePath: string): { path: string; fd: number } | null {
   const opened = openVerifiedFileSync({
     filePath,
@@ -442,19 +486,9 @@ export function handleControlUiHttpRequest(
   const rejectHardlinks = !isBundledRoot;
   const safeFile = resolveSafeControlUiFile(rootReal, filePath, rejectHardlinks);
   if (safeFile) {
-    try {
-      if (respondHeadForFile(req, res, safeFile.path)) {
-        return true;
-      }
-      if (path.basename(safeFile.path) === "index.html") {
-        serveResolvedIndexHtml(res, fs.readFileSync(safeFile.fd, "utf8"));
-        return true;
-      }
-      serveResolvedFile(res, safeFile.path, fs.readFileSync(safeFile.fd));
-      return true;
-    } finally {
-      fs.closeSync(safeFile.fd);
-    }
+    return readControlUiFileOrRespond(req, res, safeFile, {
+      isIndexHtml: path.basename(safeFile.path) === "index.html",
+    });
   }
 
   // If the requested path looks like a static asset (known extension), return
@@ -471,15 +505,7 @@ export function handleControlUiHttpRequest(
   const indexPath = path.join(root, "index.html");
   const safeIndex = resolveSafeControlUiFile(rootReal, indexPath, rejectHardlinks);
   if (safeIndex) {
-    try {
-      if (respondHeadForFile(req, res, safeIndex.path)) {
-        return true;
-      }
-      serveResolvedIndexHtml(res, fs.readFileSync(safeIndex.fd, "utf8"));
-      return true;
-    } finally {
-      fs.closeSync(safeIndex.fd);
-    }
+    return readControlUiFileOrRespond(req, res, safeIndex, { isIndexHtml: true });
   }
 
   respondControlUiNotFound(res);

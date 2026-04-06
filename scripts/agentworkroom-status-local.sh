@@ -9,6 +9,26 @@ printf 'OpenClaw home: %s\n' "$OPENCLAW_HOME"
 printf 'Gateway target: http://%s:%s/\n' "$AGENTWORKROOM_GATEWAY_HOST" "$AGENTWORKROOM_GATEWAY_PORT"
 printf 'Gateway runtime: %s\n' "$AGENTWORKROOM_GATEWAY_RUNTIME"
 printf 'Watchdog interval: %ss\n' "$AGENTWORKROOM_WATCHDOG_INTERVAL_SECONDS"
+preferred_control_ui_root="$repo_root/dist/control-ui"
+if [ -f "$OPENCLAW_CONFIG_PATH" ]; then
+  configured_control_ui_root=$(
+    OPENCLAW_CONFIG_PATH="$OPENCLAW_CONFIG_PATH" node <<'EOF'
+const fs = require("fs");
+const configPath = process.env.OPENCLAW_CONFIG_PATH;
+const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+const value = config?.gateway?.controlUi?.root;
+process.stdout.write(typeof value === "string" ? value : "");
+EOF
+  )
+  if [ -n "$configured_control_ui_root" ]; then
+    printf 'Configured Control UI root: %s\n' "$configured_control_ui_root"
+    if [ "$configured_control_ui_root" != "$preferred_control_ui_root" ]; then
+      printf 'Preferred Control UI root: %s\n' "$preferred_control_ui_root"
+    fi
+  else
+    printf 'Configured Control UI root: auto (%s)\n' "$preferred_control_ui_root"
+  fi
+fi
 if [ -f "$AGENTWORKROOM_LAUNCHD_PLIST" ]; then
   printf 'Autostart plist: installed (%s)\n' "$AGENTWORKROOM_LAUNCHD_PLIST"
 else
@@ -118,6 +138,22 @@ if [ -f "$AGENTWORKROOM_GATEWAY_LOG" ]; then
 fi
 
 if [ -f "$AGENTWORKROOM_WATCHDOG_EVENTS" ]; then
+  today_utc=$(date -u +"%Y-%m-%d")
+  total_restart_ok=$(awk -F '\t' '$3 == "restart-ok" { count++ } END { print count + 0 }' "$AGENTWORKROOM_WATCHDOG_EVENTS")
+  today_restart_ok=$(awk -F '\t' -v day="$today_utc" '$1 ~ "^" day && $3 == "restart-ok" { count++ } END { print count + 0 }' "$AGENTWORKROOM_WATCHDOG_EVENTS")
+  last_restart_ok=$(awk -F '\t' '$3 == "restart-ok" { value=$1 } END { print value }' "$AGENTWORKROOM_WATCHDOG_EVENTS")
+  last_restart_failed=$(awk -F '\t' '$3 == "restart-failed" { value=$1 } END { print value }' "$AGENTWORKROOM_WATCHDOG_EVENTS")
+  printf '\nWatchdog summary:\n'
+  printf 'Current state: %s\n' "$(get_watchdog_state)"
+  printf 'Recovered restarts (total): %s\n' "$total_restart_ok"
+  printf 'Recovered restarts (today UTC): %s\n' "$today_restart_ok"
+  if [ -n "$last_restart_ok" ]; then
+    printf 'Last successful recovery: %s\n' "$last_restart_ok"
+  fi
+  if [ -n "$last_restart_failed" ]; then
+    printf 'Last failed recovery: %s\n' "$last_restart_failed"
+  fi
+
   printf '\nRecent watchdog events:\n'
   tail -n 5 "$AGENTWORKROOM_WATCHDOG_EVENTS" || true
 fi

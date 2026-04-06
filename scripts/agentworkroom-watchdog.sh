@@ -7,7 +7,7 @@ gateway_url="http://${AGENTWORKROOM_GATEWAY_HOST}:${AGENTWORKROOM_GATEWAY_PORT}/
 http_code=$(http_status_code "$gateway_url")
 last_state=$(get_watchdog_state)
 
-if [ "$http_code" != "000" ]; then
+if gateway_http_status_is_healthy "$http_code"; then
   if [ "$last_state" != "healthy" ]; then
     record_watchdog_event "info" "healthy" "gateway reachable status=$http_code"
   fi
@@ -20,7 +20,7 @@ set_watchdog_state "recovering"
 
 if /bin/bash "$repo_root/scripts/agentworkroom-start-local.sh" >> "$repo_root/$AGENTWORKROOM_WATCHDOG_LOG" 2>&1; then
   http_code=$(http_status_code "$gateway_url")
-  if [ "$http_code" != "000" ]; then
+  if gateway_http_status_is_healthy "$http_code"; then
     record_watchdog_event "info" "restart-ok" "gateway recovered status=$http_code"
     set_watchdog_state "healthy"
     exit 0

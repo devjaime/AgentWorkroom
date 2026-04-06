@@ -69,6 +69,18 @@ http_status_code() {
   fi
 }
 
+gateway_http_status_is_healthy() {
+  local code=$1
+  case "$code" in
+    2*|3*|401|403)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 ensure_compose_service() {
   local flag=$1
   local compose_file=$2

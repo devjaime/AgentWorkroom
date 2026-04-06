@@ -84,3 +84,4 @@ This starts the OpenClaw gateway from this repository and monitors Ollama, Home 
 By default, the gateway runs inside a repo-managed tmux session so it survives terminal disconnects and remains controllable through the same scripts.
 You can also install a per-user macOS LaunchAgent that runs a periodic repo-owned watchdog at login, without going back to the fragile direct launchd gateway runtime.
 If the repo lives under `Desktop`, `Documents`, or `Downloads`, move it to a neutral path first for reliable headless launchd startup.
+The `agentworkroom:start` flow now auto-aligns `gateway.controlUi.root` to this repository before launch, so old checkouts do not keep the Control UI pinned to a stale path.

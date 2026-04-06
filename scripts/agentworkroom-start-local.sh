@@ -6,6 +6,11 @@ source "$(cd -- "$(dirname -- "$0")" && pwd)/agentworkroom-common.sh"
 require_cmd node
 require_cmd curl
 
+if [ -f "$OPENCLAW_CONFIG_PATH" ]; then
+  info "Aligning OpenClaw config with AgentWorkroom"
+  "$repo_root/scripts/agentworkroom-repair-openclaw-config.sh"
+fi
+
 ensure_compose_service "$AGENTWORKROOM_MANAGE_HOME_ASSISTANT" "${AGENTWORKROOM_HOME_ASSISTANT_COMPOSE:-}" "Home Assistant"
 ensure_compose_service "$AGENTWORKROOM_MANAGE_N8N" "${AGENTWORKROOM_N8N_COMPOSE:-}" "n8n"
 ensure_container_service "$AGENTWORKROOM_MANAGE_HOME_ASSISTANT" "${AGENTWORKROOM_HOME_ASSISTANT_CONTAINER:-}" "Home Assistant"

@@ -64,3 +64,4 @@ Esto levanta el gateway de OpenClaw desde este repositorio y deja a AgentWorkroo
 Por defecto, el gateway corre dentro de una sesión `tmux` administrada por el repo para sobrevivir cierres de terminal y seguir controlándose con los mismos scripts.
 También puedes instalar un `LaunchAgent` por usuario en macOS para que, al iniciar sesión, corra un watchdog periódico del repo sin volver al arranque directo frágil del gateway por `launchd`.
 Si el repo vive dentro de `Desktop`, `Documents` o `Downloads`, conviene moverlo antes a una ruta neutral para que el autoarranque headless por `launchd` no choque con las restricciones de macOS.
+Además, `agentworkroom:start` ahora realinea automáticamente `gateway.controlUi.root` hacia este repositorio para que un checkout viejo no deje roto el Control UI.

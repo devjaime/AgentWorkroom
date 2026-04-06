@@ -109,7 +109,10 @@ If older plugin ids or renamed providers are still generating warnings during st
 pnpm agentworkroom:repair-config
 ```
 
-This creates a timestamped backup of `~/.openclaw/openclaw.json` first, then removes known stale references that break or pollute the local runtime.
+This creates a timestamped backup of `~/.openclaw/openclaw.json` only when a repair is actually needed, then removes known stale references that break or pollute the local runtime.
+It also rewires `gateway.controlUi.root` back to `dist/control-ui` in the current `AgentWorkroom` checkout when the config still points at an older clone or a protected macOS folder.
+
+`pnpm agentworkroom:start` runs the same alignment step automatically before launching the gateway, so a stale Control UI path does not silently keep the browser UI broken.
 
 ## Watchdog and recovery visibility
 
@@ -127,6 +130,7 @@ pnpm agentworkroom:watchdog
 And `pnpm agentworkroom:status` now shows:
 
 - watchdog interval
+- configured Control UI root
 - gateway uptime
 - recent watchdog events
 - recent watchdog recovery log

@@ -1,9 +1,10 @@
 import { createHash } from "node:crypto";
+import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import type { IncomingMessage } from "node:http";
 import os from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { CONTROL_UI_BOOTSTRAP_CONFIG_PATH } from "./control-ui-contract.js";
 import { handleControlUiAvatarRequest, handleControlUiHttpRequest } from "./control-ui.js";
 import { makeMockHttpResponse } from "./test-http-response.js";
@@ -171,6 +172,67 @@ describe("handleControlUiHttpRequest", () => {
         );
         expect(handled).toBe(true);
         expect(end).toHaveBeenCalledWith(html);
+      },
+    });
+  });
+
+  it("responds with 503 when index.html read hits a transient IO timeout", async () => {
+    await withControlUiRoot({
+      fn: async (tmp) => {
+        const realRead = fsSync.readFileSync.bind(fsSync);
+        const readSpy = vi.spyOn(fsSync, "readFileSync").mockImplementation((pathOrFd, options) => {
+          if (typeof pathOrFd === "number" && options === "utf8") {
+            const error = Object.assign(new Error("timed out"), { code: "ETIMEDOUT" });
+            throw error;
+          }
+          return realRead(pathOrFd as never, options as never) as never;
+        });
+        try {
+          const { res, end } = makeMockHttpResponse();
+          const handled = handleControlUiHttpRequest(
+            { url: "/", method: "GET" } as IncomingMessage,
+            res,
+            {
+              root: { kind: "resolved", path: tmp },
+            },
+          );
+          expect(handled).toBe(true);
+          expect(res.statusCode).toBe(503);
+          expect(String(end.mock.calls[0]?.[0] ?? "")).toContain("Control UI assets not found");
+        } finally {
+          readSpy.mockRestore();
+        }
+      },
+    });
+  });
+
+  it("responds with 404 when static asset read hits a transient IO timeout", async () => {
+    await withControlUiRoot({
+      fn: async (tmp) => {
+        const { filePath } = await writeAssetFile(tmp, "app.js", "console.log('ok');");
+        const realRead = fsSync.readFileSync.bind(fsSync);
+        const readSpy = vi.spyOn(fsSync, "readFileSync").mockImplementation((pathOrFd, options) => {
+          if (typeof pathOrFd === "number" && options === undefined) {
+            const error = Object.assign(new Error("timed out"), { code: "ETIMEDOUT" });
+            throw error;
+          }
+          return realRead(pathOrFd as never, options as never) as never;
+        });
+        try {
+          const { res, end } = makeMockHttpResponse();
+          const handled = handleControlUiHttpRequest(
+            { url: `/assets/${path.basename(filePath)}`, method: "GET" } as IncomingMessage,
+            res,
+            {
+              root: { kind: "resolved", path: tmp },
+            },
+          );
+          expect(handled).toBe(true);
+          expect(res.statusCode).toBe(404);
+          expect(end).toHaveBeenCalledWith("Not Found");
+        } finally {
+          readSpy.mockRestore();
+        }
       },
     });
   });

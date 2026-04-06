@@ -37,6 +37,7 @@ This is intentional. The repo becomes the control plane without forcing fragile 
 - `scripts/agentworkroom-install-autostart.sh`
 - `scripts/agentworkroom-uninstall-autostart.sh`
 - `scripts/agentworkroom-repair-openclaw-config.sh`
+- `scripts/agentworkroom-watchdog.sh`
 
 ## Quick start
 
@@ -89,6 +90,7 @@ pnpm agentworkroom:autostart:install
 ```
 
 That installs a simple per-user LaunchAgent that calls the repo-owned start script. The LaunchAgent does not run the gateway directly; it only triggers the stable tmux-based flow that this repo already manages.
+The LaunchAgent now runs a lightweight watchdog on a fixed interval. If the gateway is healthy, it exits fast. If the gateway is down, it calls the repo-owned start flow and records the recovery attempt.
 
 Important on macOS: if the repository itself lives inside a protected user folder such as `Desktop`, `Documents`, or `Downloads`, the background LaunchAgent can fail with `Operation not permitted`.
 If you want true headless autostart, keep the repo in a neutral path such as `~/Projects/AgentWorkroom` or an external SSD mount, then reinstall autostart from there.
@@ -108,6 +110,26 @@ pnpm agentworkroom:repair-config
 ```
 
 This creates a timestamped backup of `~/.openclaw/openclaw.json` first, then removes known stale references that break or pollute the local runtime.
+
+## Watchdog and recovery visibility
+
+The local stack now keeps lightweight recovery state under `.agentworkroom/state/`:
+
+- `watchdog-events.log` records the last recovery actions
+- `watchdog-state` keeps the last known health state
+
+You can also run the watchdog manually:
+
+```bash
+pnpm agentworkroom:watchdog
+```
+
+And `pnpm agentworkroom:status` now shows:
+
+- watchdog interval
+- gateway uptime
+- recent watchdog events
+- recent watchdog recovery log
 
 ## Recommended model defaults
 

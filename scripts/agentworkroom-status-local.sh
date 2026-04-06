@@ -8,10 +8,16 @@ printf 'Repo: %s\n' "$repo_root"
 printf 'OpenClaw home: %s\n' "$OPENCLAW_HOME"
 printf 'Gateway target: http://%s:%s/\n' "$AGENTWORKROOM_GATEWAY_HOST" "$AGENTWORKROOM_GATEWAY_PORT"
 printf 'Gateway runtime: %s\n' "$AGENTWORKROOM_GATEWAY_RUNTIME"
+printf 'Watchdog interval: %ss\n' "$AGENTWORKROOM_WATCHDOG_INTERVAL_SECONDS"
 if [ -f "$AGENTWORKROOM_LAUNCHD_PLIST" ]; then
   printf 'Autostart plist: installed (%s)\n' "$AGENTWORKROOM_LAUNCHD_PLIST"
 else
   printf 'Autostart plist: not installed (%s)\n' "$AGENTWORKROOM_LAUNCHD_PLIST"
+fi
+if launchagent_is_loaded; then
+  printf 'Autostart service: loaded (%s)\n' "$AGENTWORKROOM_LAUNCHD_LABEL"
+else
+  printf 'Autostart service: not loaded (%s)\n' "$AGENTWORKROOM_LAUNCHD_LABEL"
 fi
 printf '\n'
 
@@ -21,10 +27,6 @@ if [ "$AGENTWORKROOM_GATEWAY_RUNTIME" = "tmux" ] && command -v tmux >/dev/null 2
   else
     printf 'tmux session: stopped (%s)\n' "$AGENTWORKROOM_TMUX_SESSION"
   fi
-elif launchagent_is_loaded; then
-  printf 'LaunchAgent state: loaded (%s)\n' "$AGENTWORKROOM_LAUNCHD_LABEL"
-else
-  printf 'LaunchAgent state: not loaded (%s)\n' "$AGENTWORKROOM_LAUNCHD_LABEL"
 fi
 
 if pid_is_running "$AGENTWORKROOM_GATEWAY_PIDFILE"; then
@@ -36,6 +38,13 @@ fi
 if port_is_listening "$AGENTWORKROOM_GATEWAY_PORT"; then
   printf 'Gateway listener: present on port %s\n' "$AGENTWORKROOM_GATEWAY_PORT"
   port_listener_info "$AGENTWORKROOM_GATEWAY_PORT" || true
+  listener_pid_value=$(listener_pid "$AGENTWORKROOM_GATEWAY_PORT")
+  if [ -n "$listener_pid_value" ]; then
+    gateway_uptime=$(process_elapsed "$listener_pid_value" || true)
+    if [ -n "$gateway_uptime" ]; then
+      printf 'Gateway uptime: %s (pid=%s)\n' "$gateway_uptime" "$listener_pid_value"
+    fi
+  fi
 else
   printf 'Gateway listener: none on port %s\n' "$AGENTWORKROOM_GATEWAY_PORT"
 fi
@@ -106,4 +115,14 @@ fi
 if [ -f "$AGENTWORKROOM_GATEWAY_LOG" ]; then
   printf '\nRecent gateway log:\n'
   tail -n 20 "$AGENTWORKROOM_GATEWAY_LOG" || true
+fi
+
+if [ -f "$AGENTWORKROOM_WATCHDOG_EVENTS" ]; then
+  printf '\nRecent watchdog events:\n'
+  tail -n 5 "$AGENTWORKROOM_WATCHDOG_EVENTS" || true
+fi
+
+if [ -f "$AGENTWORKROOM_WATCHDOG_LOG" ]; then
+  printf '\nRecent watchdog log:\n'
+  tail -n 20 "$AGENTWORKROOM_WATCHDOG_LOG" || true
 fi

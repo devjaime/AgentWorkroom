@@ -22,6 +22,10 @@ fi
 : "${AGENTWORKROOM_TMUX_SESSION:=agentworkroom-gateway}"
 : "${AGENTWORKROOM_LAUNCHD_LABEL:=ai.agentworkroom.gateway}"
 : "${AGENTWORKROOM_LAUNCHD_PLIST:=$HOME/Library/LaunchAgents/${AGENTWORKROOM_LAUNCHD_LABEL}.plist}"
+: "${AGENTWORKROOM_WATCHDOG_INTERVAL_SECONDS:=60}"
+: "${AGENTWORKROOM_WATCHDOG_LOG:=.agentworkroom/logs/watchdog.log}"
+: "${AGENTWORKROOM_WATCHDOG_STATE:=.agentworkroom/state/watchdog-state}"
+: "${AGENTWORKROOM_WATCHDOG_EVENTS:=.agentworkroom/state/watchdog-events.log}"
 : "${AGENTWORKROOM_BOOTSTRAP_BUILD:=1}"
 : "${AGENTWORKROOM_BOOTSTRAP_UI_BUILD:=1}"
 : "${AGENTWORKROOM_OLLAMA_URL:=http://127.0.0.1:11434}"
@@ -36,7 +40,11 @@ fi
 : "${AGENTWORKROOM_HOME_ASSISTANT_CONTAINER:=}"
 : "${AGENTWORKROOM_N8N_CONTAINER:=}"
 
-mkdir -p "$(dirname -- "$AGENTWORKROOM_GATEWAY_LOG")" "$(dirname -- "$AGENTWORKROOM_GATEWAY_PIDFILE")"
+mkdir -p \
+  "$(dirname -- "$AGENTWORKROOM_GATEWAY_LOG")" \
+  "$(dirname -- "$AGENTWORKROOM_GATEWAY_PIDFILE")" \
+  "$(dirname -- "$AGENTWORKROOM_WATCHDOG_LOG")" \
+  "$(dirname -- "$AGENTWORKROOM_WATCHDOG_STATE")"
 
 info() { printf '[AgentWorkroom] %s\n' "$*"; }
 warn() { printf '[AgentWorkroom] WARN: %s\n' "$*" >&2; }
@@ -187,6 +195,45 @@ launchagent_is_loaded() {
 tmux_session_exists() {
   local session_name=$1
   tmux has-session -t "$session_name" >/dev/null 2>&1
+}
+
+listener_pid() {
+  local port=$1
+  if command -v lsof >/dev/null 2>&1; then
+    lsof -tiTCP:"$port" -sTCP:LISTEN 2>/dev/null | head -n 1
+  fi
+}
+
+process_elapsed() {
+  local pid=$1
+  [ -n "$pid" ] || return 1
+  ps -p "$pid" -o etime= 2>/dev/null | awk '{$1=$1; print}'
+}
+
+current_iso_timestamp() {
+  date -u +"%Y-%m-%dT%H:%M:%SZ"
+}
+
+record_watchdog_event() {
+  local level=$1
+  local action=$2
+  local message=$3
+  local now
+  now=$(current_iso_timestamp)
+  printf '%s\t%s\t%s\t%s\n' "$now" "$level" "$action" "$message" >> "$AGENTWORKROOM_WATCHDOG_EVENTS"
+}
+
+set_watchdog_state() {
+  local state=$1
+  printf '%s\n' "$state" > "$AGENTWORKROOM_WATCHDOG_STATE"
+}
+
+get_watchdog_state() {
+  if [ -f "$AGENTWORKROOM_WATCHDOG_STATE" ]; then
+    cat "$AGENTWORKROOM_WATCHDOG_STATE"
+  else
+    printf 'unknown'
+  fi
 }
 
 repo_root_is_in_protected_user_dir() {

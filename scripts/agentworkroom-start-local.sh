@@ -29,8 +29,6 @@ if port_is_listening "$AGENTWORKROOM_GATEWAY_PORT" && ! tmux_session_exists "$AG
 fi
 
 chmod +x "$repo_root/scripts/agentworkroom-gateway-launch.sh"
-launchctl bootout "$(launchctl_domain)" "$AGENTWORKROOM_LAUNCHD_PLIST" >/dev/null 2>&1 || true
-launchctl disable "$(launchctl_service_target)" >/dev/null 2>&1 || true
 
 if [ "$AGENTWORKROOM_GATEWAY_RUNTIME" = "tmux" ]; then
   require_cmd tmux

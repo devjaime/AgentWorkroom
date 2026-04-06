@@ -20,12 +20,14 @@ cat >"$AGENTWORKROOM_LAUNCHD_PLIST" <<EOF
     <key>ProgramArguments</key>
     <array>
       <string>/bin/bash</string>
-      <string>${repo_root}/scripts/agentworkroom-start-local.sh</string>
+      <string>${repo_root}/scripts/agentworkroom-watchdog.sh</string>
     </array>
     <key>WorkingDirectory</key>
     <string>${repo_root}</string>
     <key>RunAtLoad</key>
     <true/>
+    <key>StartInterval</key>
+    <integer>${AGENTWORKROOM_WATCHDOG_INTERVAL_SECONDS}</integer>
     <key>EnvironmentVariables</key>
     <dict>
       <key>PATH</key>
@@ -49,4 +51,4 @@ launchctl bootstrap "$(launchctl_domain)" "$AGENTWORKROOM_LAUNCHD_PLIST"
 launchctl kickstart -k "$(launchctl_service_target)" >/dev/null 2>&1 || true
 
 info "Installed autostart LaunchAgent: $AGENTWORKROOM_LAUNCHD_PLIST"
-info "The login session will now start AgentWorkroom automatically."
+info "The login session will now run the AgentWorkroom watchdog every ${AGENTWORKROOM_WATCHDOG_INTERVAL_SECONDS}s."

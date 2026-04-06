@@ -1211,7 +1211,8 @@
     "agentworkroom:status": "bash scripts/agentworkroom-status-local.sh",
     "agentworkroom:autostart:install": "bash scripts/agentworkroom-install-autostart.sh",
     "agentworkroom:autostart:uninstall": "bash scripts/agentworkroom-uninstall-autostart.sh",
-    "agentworkroom:repair-config": "bash scripts/agentworkroom-repair-openclaw-config.sh"
+    "agentworkroom:repair-config": "bash scripts/agentworkroom-repair-openclaw-config.sh",
+    "agentworkroom:watchdog": "bash scripts/agentworkroom-watchdog.sh"
   },
   "dependencies": {
     "@agentclientprotocol/sdk": "0.18.0",
